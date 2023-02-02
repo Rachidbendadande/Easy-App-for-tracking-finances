@@ -1,0 +1,138 @@
+import sys
+import openpyxl
+from PySide2.QtGui import QPixmap
+from PySignal import Signal
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import QApplication, QMainWindow, QComboBox, QLabel, QLineEdit, QVBoxLayout, QPushButton, QWidget
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        # Add the logo image
+        logo_label = QLabel()
+        logo = QPixmap("logo.png")
+        logo_label.setPixmap(logo)
+        logo_label.setAlignment(Qt.AlignCenter)
+
+        # Add the text
+        text_label = QLabel("Massilia Finance")
+        text_label.setAlignment(Qt.AlignCenter)
+        text_label.setStyleSheet("color: darkblue; font-size: 20px")
+
+        # Add the dropdown menu, input field, and save button
+        self.dropdown_menu = QComboBox()
+        self.dropdown_menu.addItem("Food")
+        self.dropdown_menu.addItem("Transportation")
+        self.dropdown_menu.addItem("Equipment")
+        self.dropdown_menu.addItem("Salaries")
+        self.dropdown_menu.setFixedWidth(100)
+        # Add the delete button
+        self.delete_button = QPushButton("Delete")
+        self.delete_button.clicked.connect(self.delete_data)
+
+
+        self.input_field = QLineEdit()
+        self.history_label = QLabel()
+
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_data)
+
+
+
+        # Add the widgets to a layout
+        layout = QVBoxLayout()
+        layout.addWidget(logo_label)
+        layout.addWidget(text_label)
+        layout.addWidget(self.dropdown_menu)
+        layout.addWidget(self.input_field)
+        layout.addWidget(self.save_button)
+        layout.addWidget(self.history_label)
+        # Add the widgets to the layout
+        layout.addWidget(self.delete_button)
+
+        central_widget = QWidget()
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+
+        self.history = []
+
+
+    def save_data(self):
+        # Get data from the input field
+        data = self.input_field.text()
+        category = self.dropdown_menu.currentText()
+
+        # Open the Excel file in the same directory
+        wb = openpyxl.load_workbook('data.xlsx')
+        sheet = wb.active
+
+        # Find the last row that has data
+        last_row = sheet.max_row
+
+        # Write the data to the next row
+        sheet.cell(row=last_row + 1, column=1).value = data
+        sheet.cell(row=last_row + 1, column=2).value = category
+
+        # Save the changes to the file
+        wb.save('data.xlsx')
+
+        # Update the history
+        self.history.append(f"{data} - {category}")
+        self.history = self.history[-5:]
+        self.history_label.setText("\n".join(self.history))
+
+        # Empty the fields
+        self.input_field.clear()
+        self.dropdown_menu.setCurrentIndex(0)
+    def save_data(self):
+        # Get data from the input field
+        data = self.input_field.text()
+        category = self.dropdown_menu.currentText()
+
+        # Open the Excel file in the same directory
+        wb = openpyxl.load_workbook('data.xlsx')
+        sheet = wb.active
+
+        # Find the last row that has data
+        last_row = sheet.max_row
+
+        # Write the data to the next row
+        sheet.cell(row=last_row + 1, column=1).value = data
+        sheet.cell(row=last_row + 1, column=2).value = category
+
+        # Save the changes to the file
+        wb.save('data.xlsx')
+
+        # Update the history
+        self.history.append(f"{data} - {category}")
+        self.history = self.history[-5:]
+        self.history_label.setText("\n".join(self.history))
+
+        # Empty the fields
+        self.input_field.clear()
+        self.dropdown_menu.setCurrentIndex(0)
+
+    def delete_data(self):
+        # Open the Excel file in the same directory
+        wb = openpyxl.load_workbook('data.xlsx')
+        sheet = wb.active
+
+        # Find the last row that has data
+        last_row = sheet.max_row
+
+        # Delete the data in the last row
+        sheet.delete_rows(last_row)
+
+        # Save the changes to the file
+        wb.save('data.xlsx')
+
+        # Update the history
+        self.history.pop()
+        self.history_label.setText("\n".join(self.history))
+
+
+app = QApplication(sys.argv)
+window = MainWindow()
+window.show()
+sys.exit(app.exec_())
